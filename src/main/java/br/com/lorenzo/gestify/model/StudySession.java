@@ -23,6 +23,6 @@ public class StudySession {
     private Subject subject;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 }

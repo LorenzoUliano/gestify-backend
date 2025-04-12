@@ -18,6 +18,6 @@ public class Achievement {
     private LocalDateTime unlockedAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 }
