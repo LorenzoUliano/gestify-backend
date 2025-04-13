@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
 
     public void registerUser(String email, String password, String name, Role role) {
@@ -34,14 +36,4 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public String loginUser(String email, String password) {
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-            
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Senha incorreta");
-        }
-        
-        return jwtService.generateToken(user);
-    }
 }

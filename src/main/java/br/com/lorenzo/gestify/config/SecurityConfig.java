@@ -1,8 +1,9 @@
 package br.com.lorenzo.gestify.config;
 
-import br.com.lorenzo.gestify.service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -10,34 +11,28 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtService jwtService;
-
-    public SecurityConfig(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors().and()
             .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("auth/**").permitAll()
-                .requestMatchers("admin/**").hasRole("ADMIN")
-                .requestMatchers("teacher/**").hasRole("TEACHER")
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/user/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/teacher/**").hasRole("TEACHER")
                 .anyRequest().authenticated()
             )
-            .sessionManagement()
+            .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            )
+            .formLogin().disable();
 
         return http.build();
     }
@@ -48,12 +43,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthFilter jwtAuthFilter(UserDetailsService userDetailsService) {
-        return new JwtAuthFilter(jwtService, userDetailsService);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new InMemoryUserDetailsManager();
-    }
+
 }
